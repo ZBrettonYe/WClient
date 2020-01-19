@@ -13,8 +13,8 @@ namespace Netch.Forms
 
         private void AboutForm_Load(object sender, EventArgs e)
         {
-            Text = Utils.i18N.Translate("About");
-            ChannelLabel.Text = Utils.i18N.Translate("Telegram Channel");
+            Text = Utils.i18N.Translate(Text);
+            ChannelLabel.Text = Utils.i18N.Translate(ChannelLabel.Text);
         }
 
         private void AboutForm_FormClosing(object sender, FormClosingEventArgs e)
