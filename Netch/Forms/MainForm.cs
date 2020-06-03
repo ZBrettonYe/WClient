@@ -749,7 +749,7 @@ namespace Netch.Forms
 
         private void VersionLabel_Click(object sender, EventArgs e)
         {
-            Process.Start("https://github.com/NetchX/Netch/releases");
+            Process.Start("https://github.com/ZBrettonYe/WClient/releases");
         }
 
         private void EditPictureBox_Click(object sender, EventArgs e)

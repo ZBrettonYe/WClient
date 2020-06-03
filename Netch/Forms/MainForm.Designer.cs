@@ -39,6 +39,7 @@ namespace Netch.Forms
             this.AddShadowsocksServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AddShadowsocksRServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.AddVMessServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AddTrojanServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.CreateProcessModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ManageProcessModeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -86,7 +87,6 @@ namespace Netch.Forms
             this.SettingsButton = new System.Windows.Forms.Button();
             this.ProfileGroupBox = new System.Windows.Forms.GroupBox();
             this.ProfileTable = new System.Windows.Forms.TableLayoutPanel();
-            this.AddTrojanServerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuStrip.SuspendLayout();
             this.ConfigurationGroupBox.SuspendLayout();
             this.configLayoutPanel.SuspendLayout();
@@ -170,6 +170,13 @@ namespace Netch.Forms
             this.AddVMessServerToolStripMenuItem.Text = "Add [VMess] Server";
             this.AddVMessServerToolStripMenuItem.Click += new System.EventHandler(this.AddVMessServerToolStripMenuItem_Click);
             // 
+            // AddTrojanServerToolStripMenuItem
+            // 
+            this.AddTrojanServerToolStripMenuItem.Name = "AddTrojanServerToolStripMenuItem";
+            this.AddTrojanServerToolStripMenuItem.Size = new System.Drawing.Size(259, 22);
+            this.AddTrojanServerToolStripMenuItem.Text = "Add [Trojan] Server";
+            this.AddTrojanServerToolStripMenuItem.Click += new System.EventHandler(this.AddTrojanServerToolStripMenuItem_Click);
+            // 
             // ModeToolStripMenuItem
             // 
             this.ModeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -236,49 +243,49 @@ namespace Netch.Forms
             // ReloadModesToolStripMenuItem
             // 
             this.ReloadModesToolStripMenuItem.Name = "ReloadModesToolStripMenuItem";
-            this.ReloadModesToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
+            this.ReloadModesToolStripMenuItem.Size = new System.Drawing.Size(219, 22);
             this.ReloadModesToolStripMenuItem.Text = "Reload Modes";
             this.ReloadModesToolStripMenuItem.Click += new System.EventHandler(this.ReloadModesToolStripMenuItem_Click);
             // 
             // RestartServiceToolStripMenuItem
             // 
             this.RestartServiceToolStripMenuItem.Name = "RestartServiceToolStripMenuItem";
-            this.RestartServiceToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
+            this.RestartServiceToolStripMenuItem.Size = new System.Drawing.Size(219, 22);
             this.RestartServiceToolStripMenuItem.Text = "Restart Service";
             this.RestartServiceToolStripMenuItem.Click += new System.EventHandler(this.RestartServiceToolStripMenuItem_Click);
             // 
             // UninstallServiceToolStripMenuItem
             // 
             this.UninstallServiceToolStripMenuItem.Name = "UninstallServiceToolStripMenuItem";
-            this.UninstallServiceToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
+            this.UninstallServiceToolStripMenuItem.Size = new System.Drawing.Size(219, 22);
             this.UninstallServiceToolStripMenuItem.Text = "Uninstall Service";
             this.UninstallServiceToolStripMenuItem.Click += new System.EventHandler(this.UninstallServiceToolStripMenuItem_Click);
             // 
             // CleanDNSCacheToolStripMenuItem
             // 
             this.CleanDNSCacheToolStripMenuItem.Name = "CleanDNSCacheToolStripMenuItem";
-            this.CleanDNSCacheToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
+            this.CleanDNSCacheToolStripMenuItem.Size = new System.Drawing.Size(219, 22);
             this.CleanDNSCacheToolStripMenuItem.Text = "Clean DNS Cache";
             this.CleanDNSCacheToolStripMenuItem.Click += new System.EventHandler(this.CleanDNSCacheToolStripMenuItem_Click);
             // 
             // UpdateACLToolStripMenuItem
             // 
             this.UpdateACLToolStripMenuItem.Name = "UpdateACLToolStripMenuItem";
-            this.UpdateACLToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
+            this.UpdateACLToolStripMenuItem.Size = new System.Drawing.Size(219, 22);
             this.UpdateACLToolStripMenuItem.Text = "Update ACL";
             this.UpdateACLToolStripMenuItem.Click += new System.EventHandler(this.updateACLToolStripMenuItem_Click);
             // 
             // updateACLWithProxyToolStripMenuItem
             // 
             this.updateACLWithProxyToolStripMenuItem.Name = "updateACLWithProxyToolStripMenuItem";
-            this.updateACLWithProxyToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
+            this.updateACLWithProxyToolStripMenuItem.Size = new System.Drawing.Size(219, 22);
             this.updateACLWithProxyToolStripMenuItem.Text = "Update ACL with proxy";
             this.updateACLWithProxyToolStripMenuItem.Click += new System.EventHandler(this.updateACLWithProxyToolStripMenuItem_Click);
             // 
             // reinstallTapDriverToolStripMenuItem
             // 
             this.reinstallTapDriverToolStripMenuItem.Name = "reinstallTapDriverToolStripMenuItem";
-            this.reinstallTapDriverToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
+            this.reinstallTapDriverToolStripMenuItem.Size = new System.Drawing.Size(219, 22);
             this.reinstallTapDriverToolStripMenuItem.Text = "Reinstall TUN/TAP driver";
             this.reinstallTapDriverToolStripMenuItem.Click += new System.EventHandler(this.reinstallTapDriverToolStripMenuItem_Click);
             // 
@@ -639,13 +646,6 @@ namespace Netch.Forms
             this.ProfileTable.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.ProfileTable.Size = new System.Drawing.Size(599, 43);
             this.ProfileTable.TabIndex = 0;
-            // 
-            // AddTrojanServerToolStripMenuItem
-            // 
-            this.AddTrojanServerToolStripMenuItem.Name = "AddTrojanServerToolStripMenuItem";
-            this.AddTrojanServerToolStripMenuItem.Size = new System.Drawing.Size(259, 22);
-            this.AddTrojanServerToolStripMenuItem.Text = "Add [Trojan] Server";
-            this.AddTrojanServerToolStripMenuItem.Click += new System.EventHandler(this.AddTrojanServerToolStripMenuItem_Click);
             // 
             // MainForm
             // 
