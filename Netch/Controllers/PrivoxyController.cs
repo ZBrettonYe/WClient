@@ -46,13 +46,13 @@ namespace Netch.Controllers
             }
 
 
-            Instance = new Process()
+            Instance = new Process
             {
                 StartInfo =
                 {
-                    FileName = String.Format("{0}\\bin\\Privoxy.exe", Directory.GetCurrentDirectory()),
+                    FileName = string.Format("{0}\\bin\\Privoxy.exe", Directory.GetCurrentDirectory()),
                     Arguments = "..\\data\\privoxy.conf",
-                    WorkingDirectory = String.Format("{0}\\bin", Directory.GetCurrentDirectory()),
+                    WorkingDirectory = string.Format("{0}\\bin", Directory.GetCurrentDirectory()),
                     WindowStyle = ProcessWindowStyle.Hidden,
                     UseShellExecute = true,
                     CreateNoWindow = true
@@ -73,6 +73,7 @@ namespace Netch.Controllers
                 if (Instance != null && !Instance.HasExited)
                 {
                     Instance.Kill();
+                    Instance.WaitForExit();
                 }
             }
             catch (Exception)

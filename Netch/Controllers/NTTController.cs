@@ -1,12 +1,12 @@
 ﻿using Netch.Forms;
-using Netch.Utils;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace Netch.Controllers
 {
-    public class DNSController
+    public class NTTController
     {
         /// <summary>
         ///		进程实例
@@ -14,38 +14,52 @@ namespace Netch.Controllers
         public Process Instance;
 
         /// <summary>
-        /// 启动DNS服务
+        ///		当前状态
+        /// </summary>
+        public Models.State State = Models.State.Waiting;
+
+        /// <summary>
+        /// 启动NatTypeTester
         /// </summary>
         /// <returns></returns>
-        public bool Start()
+        public (bool, string, string, string) Start()
         {
-            MainForm.Instance.StatusText($"{Utils.i18N.Translate("Starting dns Service")}");
+            Thread.Sleep(1000);
+            MainForm.Instance.NatTypeStatusText($"{Utils.i18N.Translate("Starting NatTester")}");
             try
             {
-                if (!File.Exists("bin\\unbound.exe") && !File.Exists("bin\\unbound-service.conf") && !File.Exists("bin\\forward-zone.conf"))
+                if (!File.Exists("bin\\NTT.exe"))
                 {
-                    return false;
+                    return (false, null, null, null);
                 }
 
                 Instance = MainController.GetProcess();
-                Instance.StartInfo.FileName = "bin\\unbound.exe";
+                Instance.StartInfo.FileName = "bin\\NTT.exe";
 
-                Instance.StartInfo.Arguments = "-c unbound-service.conf -v";
+                Instance.StartInfo.Arguments = $" {Global.Settings.STUN_Server} {Global.Settings.STUN_Server_Port}";
 
                 Instance.OutputDataReceived += OnOutputDataReceived;
                 Instance.ErrorDataReceived += OnOutputDataReceived;
 
+                State = Models.State.Starting;
                 Instance.Start();
                 Instance.BeginOutputReadLine();
                 Instance.BeginErrorReadLine();
-                Logging.Info("dns-unbound 启动完毕");
-                return true;
+                Instance.WaitForExit();
+
+                string[] result = File.ReadAllText("logging\\NTT.log").ToString().Split('#');
+                var natType = result[0];
+                var localEnd = result[1];
+                var publicEnd = result[2];
+                MainForm.Instance.NatTypeStatusText(natType);
+
+                return (true, natType, localEnd, publicEnd);
             }
             catch (Exception)
             {
-                Utils.Logging.Info("dns-unbound 进程出错");
+                Utils.Logging.Info("NTT 进程出错");
                 Stop();
-                return false;
+                return (false, null, null, null);
             }
         }
 
@@ -72,11 +86,12 @@ namespace Netch.Controllers
         {
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
-                if (File.Exists("logging\\dns-unbound.log"))
+                if (File.Exists("logging\\NTT.log"))
                 {
-                    File.Delete("logging\\dns-unbound.log");
+                    File.Delete("logging\\NTT.log");
                 }
-                File.AppendAllText("logging\\dns-unbound.log", $"{e.Data}\r\n");
+
+                File.AppendAllText("logging\\NTT.log", $"{e.Data}\r\n");
             }
         }
     }

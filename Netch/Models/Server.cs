@@ -1,7 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿using MaxMind.GeoIP2;
+using Netch.Utils;
+using System;
 using System.Net;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 
 namespace Netch.Models
@@ -51,7 +51,7 @@ namespace Netch.Models
         /// <summary>
         ///		用户 ID（VMess）
         /// </summary>
-        public string UserID = String.Empty;
+        public string UserID = string.Empty;
 
         /// <summary>
         ///		额外 ID（VMess）
@@ -101,17 +101,17 @@ namespace Netch.Models
         /// <summary>
         ///		伪装类型（VMess）
         /// </summary>
-        public string FakeType = String.Empty;
+        public string FakeType = string.Empty;
 
         /// <summary>
         ///		伪装域名（VMess：HTTP、WebSocket、HTTP/2）
         /// </summary>
-        public string Host = String.Empty;
+        public string Host = string.Empty;
 
         /// <summary>
         ///		传输路径（VMess：WebSocket、HTTP/2）
         /// </summary>
-        public string Path = String.Empty;
+        public string Path = string.Empty;
 
         /// <summary>
         ///		QUIC 加密方式（VMess）
@@ -121,7 +121,7 @@ namespace Netch.Models
         /// <summary>
         ///		QUIC 加密密钥（VMess）
         /// </summary>
-        public string QUICSecret = String.Empty;
+        public string QUICSecret = string.Empty;
 
         /// <summary>
         ///		TLS 底层传输安全（VMess）
@@ -139,26 +139,65 @@ namespace Netch.Models
         public int Delay = -1;
 
         /// <summary>
+        ///     地区
+        /// </summary>
+        public string Country;
+
+        /// <summary>
 		///		获取备注
 		/// </summary>
 		/// <returns>备注</returns>
 		public override string ToString()
         {
-            if (String.IsNullOrWhiteSpace(Remark))
+            if (string.IsNullOrWhiteSpace(Remark))
             {
                 Remark = $"{Hostname}:{Port}";
             }
 
+            if (Country == null)
+            {
+                try
+                {
+                    var databaseReader = new DatabaseReader("bin\\GeoLite2-Country.mmdb");
+
+                    if (IPAddress.TryParse(Hostname, out _) == true)
+                    {
+                        Country = databaseReader.Country(Hostname).Country.IsoCode;
+                    }
+                    else
+                    {
+                        var DnsResult = DNS.Lookup(Hostname);
+
+                        if (DnsResult != null)
+                        {
+                            Country = databaseReader.Country(DnsResult).Country.IsoCode;
+                        }
+                        else
+                        {
+                            Country = "UN";
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    Country = "UN";
+                }
+            }
+
+            Group = Group.Equals("None") || Group.Equals("") ? "NONE" : Group;
+
             switch (Type)
             {
                 case "Socks5":
-                    return $"[S5] {Remark}";
+                    return $"[S5][{Country}][{Group}] {Remark}";
                 case "SS":
-                    return $"[SS] {Remark}";
+                    return $"[SS][{Country}][{Group}] {Remark}";
                 case "SSR":
-                    return $"[SR] {Remark}";
+                    return $"[SR][{Country}][{Group}] {Remark}";
                 case "VMess":
-                    return $"[V2] {Remark}";
+                    return $"[V2][{Country}][{Group}] {Remark}";
+                case "Trojan":
+                    return $"[TR][{Country}][{Group}] {Remark}";
                 default:
                     return "WTF";
             }
@@ -179,29 +218,13 @@ namespace Netch.Models
                 }
 
                 var list = new Task<int>[3];
-                for (int i = 0; i < 3; i++)
+                for (var i = 0; i < 3; i++)
                 {
-                    list[i] = Task.Run<int>(() =>
+                    list[i] = Task.Run(async () =>
                     {
                         try
                         {
-                            using (var client = new Socket(SocketType.Stream, ProtocolType.Tcp))
-                            {
-                                var watch = new Stopwatch();
-                                watch.Start();
-
-                                var task = client.BeginConnect(new IPEndPoint(destination, Port), (result) =>
-                                {
-                                    watch.Stop();
-                                }, 0);
-
-                                if (task.AsyncWaitHandle.WaitOne(1000))
-                                {
-                                    return (int)watch.ElapsedMilliseconds;
-                                }
-
-                                return 1000;
-                            }
+                            return await Utils.Utils.TCPingAsync(destination, Port);
                         }
                         catch (Exception)
                         {
@@ -210,7 +233,7 @@ namespace Netch.Models
                     });
                 }
 
-                Task.WaitAll(list);
+                Task.WaitAll(list[0], list[1], list[2]);
 
                 var min = Math.Min(list[0].Result, list[1].Result);
                 min = Math.Min(min, list[2].Result);

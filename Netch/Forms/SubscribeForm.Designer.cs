@@ -45,6 +45,7 @@
             this.UserAgentHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.pContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.DeleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CopyLinkToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.UseSelectedServerCheckBox = new System.Windows.Forms.CheckBox();
             this.AddSubscriptionBox.SuspendLayout();
             this.pContextMenuStrip.SuspendLayout();
@@ -61,7 +62,7 @@
             this.AddSubscriptionBox.Controls.Add(this.RemarkLabel);
             this.AddSubscriptionBox.Location = new System.Drawing.Point(12, 226);
             this.AddSubscriptionBox.Name = "AddSubscriptionBox";
-            this.AddSubscriptionBox.Size = new System.Drawing.Size(660, 132);
+            this.AddSubscriptionBox.Size = new System.Drawing.Size(660, 135);
             this.AddSubscriptionBox.TabIndex = 1;
             this.AddSubscriptionBox.TabStop = false;
             // 
@@ -74,11 +75,11 @@
             // 
             // AddButton
             // 
-            this.AddButton.Location = new System.Drawing.Point(579, 103);
+            this.AddButton.Location = new System.Drawing.Point(541, 103);
             this.AddButton.Name = "AddButton";
-            this.AddButton.Size = new System.Drawing.Size(75, 23);
+            this.AddButton.Size = new System.Drawing.Size(113, 26);
             this.AddButton.TabIndex = 7;
-            this.AddButton.Text = "Add";
+            this.AddButton.Text = "Add / Modify";
             this.AddButton.UseVisualStyleBackColor = true;
             this.AddButton.Click += new System.EventHandler(this.AddButton_Click);
             // 
@@ -87,7 +88,7 @@
             this.UserAgentLabel.AutoSize = true;
             this.UserAgentLabel.Location = new System.Drawing.Point(11, 77);
             this.UserAgentLabel.Name = "UserAgentLabel";
-            this.UserAgentLabel.Size = new System.Drawing.Size(73, 17);
+            this.UserAgentLabel.Size = new System.Drawing.Size(74, 17);
             this.UserAgentLabel.TabIndex = 5;
             this.UserAgentLabel.Text = "User-Agent";
             // 
@@ -149,6 +150,7 @@
             this.SubscribeLinkListView.TabIndex = 0;
             this.SubscribeLinkListView.UseCompatibleStateImageBehavior = false;
             this.SubscribeLinkListView.View = System.Windows.Forms.View.Details;
+            this.SubscribeLinkListView.SelectedIndexChanged += new System.EventHandler(this.SubscribeLinkListView_SelectedIndexChanged);
             // 
             // RemarkColumnHeader
             // 
@@ -168,21 +170,29 @@
             // pContextMenuStrip
             // 
             this.pContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.DeleteToolStripMenuItem});
+            this.DeleteToolStripMenuItem,
+            this.CopyLinkToolStripMenuItem});
             this.pContextMenuStrip.Name = "pContextMenuStrip";
-            this.pContextMenuStrip.Size = new System.Drawing.Size(114, 26);
+            this.pContextMenuStrip.Size = new System.Drawing.Size(130, 48);
             // 
             // DeleteToolStripMenuItem
             // 
             this.DeleteToolStripMenuItem.Name = "DeleteToolStripMenuItem";
-            this.DeleteToolStripMenuItem.Size = new System.Drawing.Size(113, 22);
+            this.DeleteToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
             this.DeleteToolStripMenuItem.Text = "Delete";
             this.DeleteToolStripMenuItem.Click += new System.EventHandler(this.DeleteToolStripMenuItem_Click);
+            // 
+            // CopyLinkToolStripMenuItem
+            // 
+            this.CopyLinkToolStripMenuItem.Name = "CopyLinkToolStripMenuItem";
+            this.CopyLinkToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
+            this.CopyLinkToolStripMenuItem.Text = "CopyLink";
+            this.CopyLinkToolStripMenuItem.Click += new System.EventHandler(this.CopyLinkToolStripMenuItem_Click);
             // 
             // UseSelectedServerCheckBox
             // 
             this.UseSelectedServerCheckBox.AutoSize = true;
-            this.UseSelectedServerCheckBox.Location = new System.Drawing.Point(12, 364);
+            this.UseSelectedServerCheckBox.Location = new System.Drawing.Point(12, 396);
             this.UseSelectedServerCheckBox.Name = "UseSelectedServerCheckBox";
             this.UseSelectedServerCheckBox.Size = new System.Drawing.Size(285, 21);
             this.UseSelectedServerCheckBox.TabIndex = 9;
@@ -229,6 +239,7 @@
         private System.Windows.Forms.ColumnHeader LinkColumnHeader;
         private System.Windows.Forms.ContextMenuStrip pContextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem DeleteToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem CopyLinkToolStripMenuItem;
         private System.Windows.Forms.Label UserAgentLabel;
         private System.Windows.Forms.TextBox UserAgentTextBox;
         private System.Windows.Forms.ColumnHeader UserAgentHeader;

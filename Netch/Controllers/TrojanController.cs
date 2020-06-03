@@ -1,20 +1,23 @@
-﻿using Netch.Forms;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Netch.Controllers
 {
-    public class SSRController
+    public class TrojanController
     {
         /// <summary>
-        ///		进程实例
+        ///     进程实例
         /// </summary>
         public Process Instance;
 
         /// <summary>
-        ///		当前状态
+        ///     当前状态
         /// </summary>
         public Models.State State = Models.State.Waiting;
 
@@ -26,46 +29,29 @@ namespace Netch.Controllers
         /// <returns>是否启动成功</returns>
         public bool Start(Models.Server server, Models.Mode mode)
         {
-            MainForm.Instance.StatusText($"{Utils.i18N.Translate("Status")}{Utils.i18N.Translate(": ")}{Utils.i18N.Translate("Starting ShadowsocksR")}");
+            Forms.MainForm.Instance.StatusText($"{Utils.i18N.Translate("Status")}{Utils.i18N.Translate(": ")}{Utils.i18N.Translate("Starting Trojan")}");
 
-            File.Delete("logging\\shadowsocksr.log");
-
-            if (!File.Exists("bin\\ShadowsocksR.exe"))
+            File.Delete("logging\\trojan.log");
+            if (!File.Exists("bin\\Trojan.exe"))
             {
                 return false;
             }
 
+            File.WriteAllText("data\\last.json", Newtonsoft.Json.JsonConvert.SerializeObject(new Models.Trojan()
+            {
+                local_addr = Global.Settings.LocalAddress,
+                local_port = Global.Settings.Socks5LocalPort,
+                remote_addr = server.Hostname,
+                remote_port = server.Port,
+                password = new List<string>()
+                {
+                    server.Password
+                }
+            }));
+
             Instance = MainController.GetProcess();
-            Instance.StartInfo.FileName = "bin\\ShadowsocksR.exe";
-            Instance.StartInfo.Arguments = $"-s {server.Hostname} -p {server.Port} -k \"{server.Password}\" -m {server.EncryptMethod} -t 120";
-
-            if (!string.IsNullOrEmpty(server.Protocol))
-            {
-                Instance.StartInfo.Arguments += $" -O {server.Protocol}";
-
-                if (!string.IsNullOrEmpty(server.ProtocolParam))
-                {
-                    Instance.StartInfo.Arguments += $" -G \"{server.ProtocolParam}\"";
-                }
-            }
-
-            if (!string.IsNullOrEmpty(server.OBFS))
-            {
-                Instance.StartInfo.Arguments += $" -o {server.OBFS}";
-
-                if (!string.IsNullOrEmpty(server.OBFSParam))
-                {
-                    Instance.StartInfo.Arguments += $" -g \"{server.OBFSParam}\"";
-                }
-            }
-
-            Instance.StartInfo.Arguments += $" -b {Global.Settings.LocalAddress} -l {Global.Settings.Socks5LocalPort} -u";
-
-            if (mode.BypassChina)
-            {
-                Instance.StartInfo.Arguments += " --acl default.acl";
-            }
-
+            Instance.StartInfo.FileName = "bin\\Trojan.exe";
+            Instance.StartInfo.Arguments = "-c ..\\data\\last.json";
             Instance.OutputDataReceived += OnOutputDataReceived;
             Instance.ErrorDataReceived += OnOutputDataReceived;
 
@@ -84,14 +70,14 @@ namespace Netch.Controllers
 
                 if (State == Models.State.Stopped)
                 {
-                    Utils.Logging.Info("SSR 进程启动失败");
+                    Utils.Logging.Info("Trojan 进程启动失败");
 
                     Stop();
                     return false;
                 }
             }
 
-            Utils.Logging.Info("SSR 进程启动超时");
+            Utils.Logging.Info("Trojan 进程启动超时");
             Stop();
             return false;
         }
@@ -119,7 +105,7 @@ namespace Netch.Controllers
         {
             if (!string.IsNullOrWhiteSpace(e.Data))
             {
-                File.AppendAllText("logging\\shadowsocksr.log", $"{e.Data}\r\n");
+                File.AppendAllText("logging\\trojan.log", $"{e.Data}\r\n");
 
                 if (State == Models.State.Starting)
                 {
@@ -127,11 +113,11 @@ namespace Netch.Controllers
                     {
                         State = Models.State.Stopped;
                     }
-                    else if (e.Data.Contains("listening at"))
+                    else if (e.Data.Contains("started"))
                     {
                         State = Models.State.Started;
                     }
-                    else if (e.Data.Contains("Invalid config path") || e.Data.Contains("usage"))
+                    else if (e.Data.Contains("exiting"))
                     {
                         State = Models.State.Stopped;
                     }

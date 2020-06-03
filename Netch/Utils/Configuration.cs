@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Netch.Utils
@@ -37,7 +39,7 @@ namespace Netch.Utils
                             if (Global.Settings.Server[0].Hostname == null)
                             {
                                 var LegacySettingConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<Models.LegacySetting>(File.ReadAllText(SETTINGS_JSON));
-                                for (int i = 0; i < LegacySettingConfig.Server.Count; i++)
+                                for (var i = 0; i < LegacySettingConfig.Server.Count; i++)
                                 {
                                     Global.Settings.Server[i].Hostname = LegacySettingConfig.Server[i].Address;
                                     if (Global.Settings.Server[i].Type == "Shadowsocks")
@@ -100,67 +102,123 @@ namespace Netch.Utils
             }
             else
             {
-                Logging.Info($"GetBestRoute 搜索失败");
+                Logging.Info("GetBestRoute 搜索失败");
                 return false;
             }
 
-            foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
+            Logging.Info($"搜索适配器index：{Global.Adapter.Index}");
+            var AddressGot = false;
+            foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
             {
-                IPInterfaceProperties adapterProperties = adapter.GetIPProperties();
-                IPv4InterfaceProperties p = adapterProperties.GetIPv4Properties();
-
-                // 通过索引查找对应适配器的 IPv4 地址
-                if (p.Index == Global.Adapter.Index)
+                try
                 {
-                    var AddressGot = false;
-                    String AdapterIPs = "";
+                    var adapterProperties = adapter.GetIPProperties();
+                    var p = adapterProperties.GetIPv4Properties();
+                    Logging.Info($"检测适配器：{adapter.Name} {adapter.Id} {adapter.Description}, index: {p.Index}");
 
-                    foreach (UnicastIPAddressInformation ip in adapterProperties.UnicastAddresses)
+                    // 通过索引查找对应适配器的 IPv4 地址
+                    if (p.Index == Global.Adapter.Index)
                     {
-                        if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+                        var AdapterIPs = "";
+
+                        foreach (var ip in adapterProperties.UnicastAddresses)
                         {
-                            AddressGot = true;
-                            Global.Adapter.Address = ip.Address;
-                            Logging.Info($"当前出口 IPv4 地址：{Global.Adapter.Address}");
-                            break;
+                            if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+                            {
+                                AddressGot = true;
+                                Global.Adapter.Address = ip.Address;
+                                Logging.Info($"当前出口 IPv4 地址：{Global.Adapter.Address}");
+                                break;
+                            }
+                            AdapterIPs = $"{ip.Address} | ";
                         }
-                        AdapterIPs = $"{ip.Address.ToString()} | ";
+
+                        if (!AddressGot)
+                        {
+                            if (AdapterIPs.Length > 3)
+                            {
+                                AdapterIPs = AdapterIPs.Substring(0, AdapterIPs.Length - 3);
+                                Logging.Info($"所有出口地址：{AdapterIPs}");
+                            }
+                            Logging.Info("出口无 IPv4 地址，当前只支持 IPv4 地址");
+                            return false;
+                        }
+                        break;
                     }
 
-                    if (!AddressGot)
-                    {
-                        if (AdapterIPs.Length > 3)
-                        {
-                            AdapterIPs = AdapterIPs.Substring(0, AdapterIPs.Length - 3);
-                            Logging.Info($"所有出口地址：{AdapterIPs}");
-                        }
-                        Logging.Info($"出口无 IPv4 地址，当前只支持 IPv4 地址");
-                        return false;
-                    }
-                    break;
                 }
+                catch (Exception)
+                { }
+            }
+
+            if (!AddressGot)
+            {
+                Logging.Info("无法找到当前使用适配器");
+                return false;
             }
 
             // 搜索 TUN/TAP 适配器的索引
             Global.TUNTAP.ComponentID = TUNTAP.GetComponentID();
-            if (String.IsNullOrEmpty(Global.TUNTAP.ComponentID))
+            if (string.IsNullOrEmpty(Global.TUNTAP.ComponentID))
             {
-                MessageBox.Show(i18N.Translate("Please install TAP-Windows and create an TUN/TAP adapter manually"), i18N.Translate("Information"), MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return false;
+                Logging.Info("未找到可用 TUN/TAP 适配器");
+                if (MessageBox.Show(i18N.Translate("TUN/TAP driver is not detected. Is it installed now?"), i18N.Translate("Information"), MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.OK)
+                {
+                    addtap();
+                    //给点时间，不然立马安装完毕就查找适配器可能会导致找不到适配器ID
+                    Thread.Sleep(1000);
+                    Global.TUNTAP.ComponentID = TUNTAP.GetComponentID();
+                }
+                else
+                {
+                    return false;
+                }
+                //MessageBox.Show(i18N.Translate("Please install TAP-Windows and create an TUN/TAP adapter manually"), i18N.Translate("Information"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // return false;
             }
 
-            var name = TUNTAP.GetName(Global.TUNTAP.ComponentID);
             foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (adapter.Name == name)
+                if (adapter.Id == Global.TUNTAP.ComponentID)
                 {
                     Global.TUNTAP.Adapter = adapter;
                     Global.TUNTAP.Index = adapter.GetIPProperties().GetIPv4Properties().Index;
 
-                    break;
+                    Logging.Info($"找到适配器：{adapter.Id}");
+
+                    return true;
                 }
             }
-            return true;
+
+            Logging.Info("无法找到出口");
+            return false;
+        }
+        /// <summary>
+        /// 安装tap网卡
+        /// </summary>
+        public static void addtap()
+        {
+            Logging.Info("正在安装 TUN/TAP 适配器");
+            //安装Tap Driver
+            Process installProcess = new Process();
+            installProcess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            installProcess.StartInfo.FileName = Path.Combine("bin/tap-driver", "addtap.bat");
+            installProcess.Start();
+            installProcess.WaitForExit();
+            installProcess.Close();
+        }
+        /// <summary>
+        /// 卸载tap网卡
+        /// </summary>
+        public static void deltapall()
+        {
+            Logging.Info("正在卸载 TUN/TAP 适配器");
+            Process installProcess = new Process();
+            installProcess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            installProcess.StartInfo.FileName = Path.Combine("bin/tap-driver", "deltapall.bat");
+            installProcess.Start();
+            installProcess.WaitForExit();
+            installProcess.Close();
         }
     }
 }

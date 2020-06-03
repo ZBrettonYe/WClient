@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Netch.Forms.Server
 {
-    public partial class Shadowsocks : Form
+    public partial class Trojan : Form
     {
         public int Index;
 
@@ -13,28 +13,20 @@ namespace Netch.Forms.Server
         ///     初始化
         /// </summary>
         /// <param name="index">需要编辑的索引</param>
-        public Shadowsocks(int index = -1)
+        public Trojan(int index = -1)
         {
             InitializeComponent();
 
             Index = index;
         }
 
-        private void Shadowsocks_Load(object sender, EventArgs e)
+        private void Trojan_Load(object sender, EventArgs e)
         {
             ConfigurationGroupBox.Text = Utils.i18N.Translate(ConfigurationGroupBox.Text);
             RemarkLabel.Text = Utils.i18N.Translate(RemarkLabel.Text);
             AddressLabel.Text = Utils.i18N.Translate(AddressLabel.Text);
             PasswordLabel.Text = Utils.i18N.Translate(PasswordLabel.Text);
-            EncryptMethodLabel.Text = Utils.i18N.Translate(EncryptMethodLabel.Text);
-            PluginLabel.Text = Utils.i18N.Translate(PluginLabel.Text);
-            PluginOptionsLabel.Text = Utils.i18N.Translate(PluginOptionsLabel.Text);
             ControlButton.Text = Utils.i18N.Translate(ControlButton.Text);
-
-            foreach (var encrypt in Global.EncryptMethods.SS)
-            {
-                EncryptMethodComboBox.Items.Add(encrypt);
-            }
 
             if (Index != -1)
             {
@@ -42,17 +34,10 @@ namespace Netch.Forms.Server
                 AddressTextBox.Text = Global.Settings.Server[Index].Hostname;
                 PortTextBox.Text = Global.Settings.Server[Index].Port.ToString();
                 PasswordTextBox.Text = Global.Settings.Server[Index].Password;
-                EncryptMethodComboBox.SelectedIndex = Global.EncryptMethods.SS.IndexOf(Global.Settings.Server[Index].EncryptMethod);
-                PluginTextBox.Text = Global.Settings.Server[Index].Plugin;
-                PluginOptionsTextBox.Text = Global.Settings.Server[Index].PluginOption;
-            }
-            else
-            {
-                EncryptMethodComboBox.SelectedIndex = 0;
             }
         }
 
-        private void Shadowsocks_FormClosing(object sender, FormClosingEventArgs e)
+        private void Trojan_FormClosing(object sender, FormClosingEventArgs e)
         {
             Global.MainForm.Show();
         }
@@ -93,13 +78,10 @@ namespace Netch.Forms.Server
                 Global.Settings.Server.Add(new Models.Server
                 {
                     Remark = RemarkTextBox.Text,
-                    Type = "SS",
+                    Type = "Trojan",
                     Hostname = AddressTextBox.Text,
                     Port = int.Parse(PortTextBox.Text),
-                    Password = PasswordTextBox.Text,
-                    EncryptMethod = EncryptMethodComboBox.Text,
-                    Plugin = PluginTextBox.Text,
-                    PluginOption = PluginOptionsTextBox.Text
+                    Password = PasswordTextBox.Text
                 });
             }
             else
@@ -108,13 +90,10 @@ namespace Netch.Forms.Server
                 {
                     Remark = RemarkTextBox.Text,
                     Group = Global.Settings.Server[Index].Group,
-                    Type = "SS",
+                    Type = "Trojan",
                     Hostname = AddressTextBox.Text,
                     Port = int.Parse(PortTextBox.Text),
                     Password = PasswordTextBox.Text,
-                    EncryptMethod = EncryptMethodComboBox.Text,
-                    Plugin = PluginTextBox.Text,
-                    PluginOption = PluginOptionsTextBox.Text,
                     Country = null
                 };
             }

@@ -118,7 +118,7 @@ namespace Netch.Forms.Server
             }
             if (Index == -1)
             {
-                Global.Settings.Server.Add(new Models.Server()
+                Global.Settings.Server.Add(new Models.Server
                 {
                     Remark = RemarkTextBox.Text,
                     Type = "VMess",
@@ -139,7 +139,7 @@ namespace Netch.Forms.Server
             }
             else
             {
-                Global.Settings.Server[Index] = new Models.Server()
+                Global.Settings.Server[Index] = new Models.Server
                 {
                     Remark = RemarkTextBox.Text,
                     Type = "VMess",
@@ -155,7 +155,8 @@ namespace Netch.Forms.Server
                     QUICSecure = QUICSecurityComboBox.Text,
                     QUICSecret = QUICSecretTextBox.Text,
                     TLSSecure = TLSSecureCheckBox.Checked,
-                    UseMux = UseMuxCheckBox.Checked
+                    UseMux = UseMuxCheckBox.Checked,
+                    Country = null
                 };
             }
 

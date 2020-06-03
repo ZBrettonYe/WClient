@@ -45,7 +45,7 @@ namespace Netch.Forms.Server
 
             foreach (var obfs in Global.OBFSs)
             {
-                PluginComboBox.Items.Add(obfs);
+                OBFSComboBox.Items.Add(obfs);
             }
 
             if (Index != -1)
@@ -57,14 +57,14 @@ namespace Netch.Forms.Server
                 EncryptMethodComboBox.SelectedIndex = Global.EncryptMethods.SSR.IndexOf(Global.Settings.Server[Index].EncryptMethod);
                 ProtocolComboBox.SelectedIndex = Global.Protocols.IndexOf(Global.Settings.Server[Index].Protocol);
                 ProtocolParamTextBox.Text = Global.Settings.Server[Index].ProtocolParam;
-                PluginComboBox.SelectedIndex = Global.OBFSs.IndexOf(Global.Settings.Server[Index].Plugin);
-                PluginOptionParamTextBox.Text = Global.Settings.Server[Index].PluginOption;
+                OBFSComboBox.SelectedIndex = Global.OBFSs.IndexOf(Global.Settings.Server[Index].OBFS);
+                OBFSOptionParamTextBox.Text = Global.Settings.Server[Index].OBFSParam;
             }
             else
             {
                 EncryptMethodComboBox.SelectedIndex = 0;
                 ProtocolComboBox.SelectedIndex = 0;
-                PluginComboBox.SelectedIndex = 0;
+                OBFSComboBox.SelectedIndex = 0;
             }
         }
 
@@ -106,7 +106,7 @@ namespace Netch.Forms.Server
             }
             if (Index == -1)
             {
-                Global.Settings.Server.Add(new Models.Server()
+                Global.Settings.Server.Add(new Models.Server
                 {
                     Remark = RemarkTextBox.Text,
                     Type = "SSR",
@@ -116,13 +116,13 @@ namespace Netch.Forms.Server
                     EncryptMethod = EncryptMethodComboBox.Text,
                     Protocol = ProtocolComboBox.Text,
                     ProtocolParam = ProtocolParamTextBox.Text,
-                    Plugin = PluginComboBox.Text,
-                    PluginOption = PluginOptionParamTextBox.Text
+                    OBFS = OBFSComboBox.Text,
+                    OBFSParam = OBFSOptionParamTextBox.Text
                 });
             }
             else
             {
-                Global.Settings.Server[Index] = new Models.Server()
+                Global.Settings.Server[Index] = new Models.Server
                 {
                     Remark = RemarkTextBox.Text,
                     Group = Global.Settings.Server[Index].Group,
@@ -133,8 +133,9 @@ namespace Netch.Forms.Server
                     EncryptMethod = EncryptMethodComboBox.Text,
                     Protocol = ProtocolComboBox.Text,
                     ProtocolParam = ProtocolParamTextBox.Text,
-                    Plugin = PluginComboBox.Text,
-                    PluginOption = PluginOptionParamTextBox.Text
+                    OBFS = OBFSComboBox.Text,
+                    OBFSParam = OBFSOptionParamTextBox.Text,
+                    Country = null
                 };
             }
 
