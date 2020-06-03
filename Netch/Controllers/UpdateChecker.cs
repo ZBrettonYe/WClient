@@ -24,7 +24,7 @@ namespace Netch.Controllers
         public event EventHandler NewVersionFoundFailed;
         public event EventHandler NewVersionNotFound;
 
-        public const string Name = @"Netch";
+        public const string Name = @"WClient";
         public const string Copyright = @"Copyright © 2019 - 2020";
         public const string Version = @"1.4.9";
 
