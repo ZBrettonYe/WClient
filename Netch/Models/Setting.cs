@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Netch.Models
 {
@@ -89,10 +90,19 @@ namespace Netch.Models
         public bool CheckUpdateWhenOpened = true;
 
         /// <summary>
-        ///		使用何种模式文件名
-        ///		0 为自定义文件名，1 为使用和备注一致的文件名，2 为使用时间数据作为文件名
+        ///		是否检查 Beta 更新
         /// </summary>
-        public int ModeFileNameType = 1;
+        public bool CheckBetaUpdate = false;
+
+        /// <summary>
+        ///     修改系统 DNS
+        /// </summary>
+        public bool ModifySystemDNS = false;
+
+        /// <summary>
+        ///     网页请求超时 毫秒
+        /// </summary>
+        public int RequestTimeout = 10000;
 
         /// <summary>
         ///		HTTP 本地端口
@@ -108,6 +118,11 @@ namespace Netch.Models
         ///		Redirector TCP 占用端口
         /// </summary>
         public int RedirectorTCPPort = 3901;
+
+        /// <summary>
+        ///		UDP Socket 占用端口
+        /// </summary>
+        public int UDPSocketPort = 18291;
 
         /// <summary>
         ///		HTTP 和 Socks5 本地代理地址
@@ -132,7 +147,7 @@ namespace Netch.Models
         /// <summary>
         ///     服务器列表
         /// </summary>
-        public List<Server> Server = new List<Server>();
+        public readonly List<Server> Server = new List<Server>();
 
         /// <summary>
         ///		全局绕过 IP 列表
@@ -142,7 +157,7 @@ namespace Netch.Models
         /// <summary>
         ///		已保存的快捷配置
         /// </summary>
-        public List<Profile> profiles = new List<Profile>();
+        public List<Profile> Profiles = new List<Profile>();
 
         /// <summary>
         ///		快捷配置数量
@@ -152,7 +167,7 @@ namespace Netch.Models
         /// <summary>
         ///     STUN测试服务器
         /// </summary>
-        public string STUN_Server = "stun.stunprotocol.org";
+        public string STUN_Server = "stun.syncthing.net";
 
         /// <summary>
         ///     STUN测试服务器
