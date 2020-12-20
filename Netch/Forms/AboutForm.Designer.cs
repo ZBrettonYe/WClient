@@ -29,21 +29,9 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AboutForm));
-            this.ChannelLabel = new System.Windows.Forms.LinkLabel();
             this.NetchPictureBox = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.NetchPictureBox)).BeginInit();
             this.SuspendLayout();
-            // 
-            // ChannelLabel
-            // 
-            this.ChannelLabel.AutoSize = true;
-            this.ChannelLabel.Location = new System.Drawing.Point(116, 215);
-            this.ChannelLabel.Name = "ChannelLabel";
-            this.ChannelLabel.Size = new System.Drawing.Size(113, 17);
-            this.ChannelLabel.TabIndex = 5;
-            this.ChannelLabel.TabStop = true;
-            this.ChannelLabel.Text = "Telegram Channel";
-            this.ChannelLabel.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.ChannelLabel_LinkClicked);
             // 
             // NetchPictureBox
             // 
@@ -62,7 +50,6 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(338, 241);
-            this.Controls.Add(this.ChannelLabel);
             this.Controls.Add(this.NetchPictureBox);
             this.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -82,6 +69,5 @@
         #endregion
 
         private System.Windows.Forms.PictureBox NetchPictureBox;
-        private System.Windows.Forms.LinkLabel ChannelLabel;
     }
 }
