@@ -1,52 +1,77 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using Netch.Utils;
 
 namespace Netch.Controllers
 {
-    public class NTTController : Controller
+    public class NTTController : Guard, IController
     {
-        private string _Other_address;
-        private string _Binding_test;
-        private string _Local_address;
-        private string _Mapped_address;
-        private string _Nat_mapping_behavior;
-        private string _Nat_filtering_behavior;
-        private string _lastResult;
-
-        public NTTController()
-        {
-            Name = "NTT";
-            MainFile = "NTT.exe";
-        }
+        public override string Name { get; protected set; } = "NTT";
+        public override string MainFile { get; protected set; } = "NTT.exe";
 
         /// <summary>
         ///     启动 NatTypeTester
         /// </summary>
         /// <returns></returns>
-        public (bool, string, string, string) Start()
+        public (string, string, string) Start()
         {
+            string localEnd=null;
+            string publicEnd=null;
+            string result =null;
+            string bindingTest=null;
+
             try
             {
                 InitInstance($" {Global.Settings.STUN_Server} {Global.Settings.STUN_Server_Port}");
                 Instance.OutputDataReceived += OnOutputDataReceived;
                 Instance.ErrorDataReceived += OnOutputDataReceived;
                 Instance.Start();
-                Instance.BeginOutputReadLine();
-                Instance.BeginErrorReadLine();
-                Instance.WaitForExit();
+                var output = Instance.StandardOutput.ReadToEnd();
+                try
+                {
+                    File.WriteAllText(Path.Combine(Global.NetchDir, $"logging\\{Name}.log"), output);
+                }
+                catch (Exception e)
+                {
+                    Logging.Warning($"写入 {Name} 日志错误：\n" + e.Message);
+                }
 
-                /* var result = _lastResult.Split('\n');
-                 var natType = result[0];
-                 var localEnd = result[1];
-                 var publicEnd = result[2];*/
+                foreach (var line in output.Split('\n'))
+                {
+                    var str = line.Split(':').Select(s => s.Trim()).ToArray();
+                    if (str.Length < 2)
+                        continue;
+                    var key = str[0];
+                    var value = str[1];
+                    switch (key)
+                    {
+                        case "Other address is":
+                        case "Nat mapping behavior":
+                        case "Nat filtering behavior":
+                            break;
+                        case "Binding test":
+                            bindingTest = value;
+                            break;
+                        case "Local address":
+                            localEnd = value;
+                            break;
+                        case "Mapped address":
+                            publicEnd = value;
+                            break;
+                        case "result":
+                            result = value;
+                            break;
+                        default:
+                            result = str.Last();
+                            break;
+                    }
+                }
 
-                var natType = _lastResult;
-                var localEnd = _Local_address;
-                var publicEnd = _Mapped_address;
-
-                return (true, natType, localEnd, publicEnd);
+                if (bindingTest == "Fail")
+                    result = "UdpBlocked";
+                return (result, localEnd, publicEnd);
             }
             catch (Exception e)
             {
@@ -60,48 +85,7 @@ namespace Netch.Controllers
                     // ignored
                 }
 
-                return (false, null, null, null);
-            }
-        }
-
-        private new void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(e.Data)) return;
-            var str = e.Data.Split(':');
-            if (str.Length < 2)
-                return;
-            var key = str[0];
-            var value = str[1].Trim();
-            switch (key)
-            {
-                case "Other address is":
-                    _Other_address = value;
-                    Logging.Info($"[NTT] Other address is {value}");
-                    break;
-                case "Binding test":
-                    _Binding_test = value;
-                    Logging.Info($"[NTT] Binding test {value}");
-                    break;
-                case "Local address":
-                    _Local_address = value;
-                    Logging.Info($"[NTT] Local address {value}");
-                    break;
-                case "Mapped address":
-                    _Mapped_address = value;
-                    Logging.Info($"[NTT] Mapped address {value}");
-                    break;
-                case "Nat mapping behavior":
-                    _Nat_mapping_behavior = value;
-                    Logging.Info($"[NTT] Nat mapping behavior {value}");
-                    break;
-                case "Nat filtering behavior":
-                    _Nat_filtering_behavior = value;
-                    Logging.Info($"[NTT] Nat filtering behavior {value}");
-                    break;
-                case "result":
-                    _lastResult = value;
-                    Logging.Info($"[NTT] result {value}");
-                    break;
+                return (null, null, null);
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -68,6 +67,7 @@ namespace Netch.Forms
 
             ModeComboBox.Items.Clear();
             ModeComboBox.Items.AddRange(Global.Modes.ToArray());
+            ModeComboBox.Tag = null;
             SelectLastMode();
             _comboBoxInitialized = comboBoxInitialized;
         }
@@ -152,6 +152,23 @@ namespace Netch.Forms
             catch (Exception)
             {
                 // ignored
+            }
+        }
+
+        private void AddAddServerToolStripMenuItems()
+        {
+            foreach (var serversUtil in ServerHelper.ServerUtils.Where(i => !string.IsNullOrEmpty(i.FullName)))
+            {
+                var fullName = serversUtil.FullName;
+                var control = new ToolStripMenuItem
+                {
+                    Name = $"Add{fullName}ServerToolStripMenuItem",
+                    Size = new Size(259, 22),
+                    Text = i18N.TranslateFormat("Add [{0}] Server", fullName),
+                };
+                _mainFormText.Add(control.Name, new[] {"Add [{0}] Server", fullName});
+                control.Click += AddServerToolStripMenuItem_Click;
+                ServerToolStripMenuItem.DropDownItems.Add(control);
             }
         }
     }

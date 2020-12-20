@@ -2,13 +2,11 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Netch.Controllers;
-using Netch.Forms.Mode;
 using Netch.Utils;
-using Process = System.Diagnostics.Process;
 
 namespace Netch.Forms
 {
@@ -31,40 +29,58 @@ namespace Netch.Forms
         {
             _updater.NewVersionFound += (o, args) =>
             {
-                if (_updater.LatestVersionDownloadUrl.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-                {
-                    NotifyTip($"{i18N.Translate(@"New version available", ": ")}{_updater.LatestVersionNumber}");
-                    NewVersionLabel.Visible = true;
-                }
+                NotifyTip($"{i18N.Translate(@"New version available", ": ")}{_updater.LatestVersionNumber}");
+                NewVersionLabel.Visible = true;
             };
             _updater.Check(Global.Settings.CheckBetaUpdate);
         }
 
         private async void NewVersionLabel_Click(object sender, EventArgs e)
         {
+            if (!_updater.LatestRelease.assets.Any())
+            {
+                Utils.Utils.Open(_updater.LatestVersionUrl);
+                return;
+            }
+
             if (MessageBoxX.Show(i18N.Translate("Download and install now?"), confirm: true) != DialogResult.OK)
                 return;
             NotifyTip(i18N.Translate("Start downloading new version"));
-            var fileName = $"Netch{_updater.LatestVersionNumber}.zip";
+
+            var latestVersionDownloadUrl = _updater.LatestRelease.assets[0].browser_download_url;
+            var tagPage = await WebUtil.DownloadStringAsync(WebUtil.CreateRequest(_updater.LatestVersionUrl));
+            var match = Regex.Match(tagPage, @"<td .*>(?<sha256>.*)</td>", RegexOptions.Singleline);
+
+            // TODO Replace with regex get basename and sha256 
+            var fileName = Path.GetFileName(new Uri(latestVersionDownloadUrl).LocalPath);
+            fileName = fileName.Insert(fileName.LastIndexOf('.'), _updater.LatestVersionNumber);
             var fileFullPath = Path.Combine(Global.NetchDir, "data", fileName);
-            var updateFileValid = false;
+
+            var sha256 = match.Groups["sha256"].Value;
 
             try
             {
                 if (File.Exists(fileFullPath))
                 {
-                    if (!(updateFileValid = Utils.Utils.IsZipValid(fileFullPath)))
+                    if (Utils.Utils.SHA256CheckSum(fileFullPath) == sha256)
                     {
-                        File.Delete(fileFullPath);
+                        RunUpdater();
+                        return;
                     }
+
+                    File.Delete(fileFullPath);
                 }
 
-                if (!File.Exists(fileFullPath))
-                    await WebUtil.DownloadFileAsync(WebUtil.CreateRequest(_updater.LatestVersionDownloadUrl), fileFullPath);
-                if (updateFileValid || Utils.Utils.IsZipValid(fileFullPath))
-                    RunUpdater();
-                else
-                    throw new InvalidDataException($"{fileFullPath} invalid");
+                // TODO Replace "New Version Found" to Progress bar
+                await WebUtil.DownloadFileAsync(WebUtil.CreateRequest(latestVersionDownloadUrl), fileFullPath);
+
+                if (Utils.Utils.SHA256CheckSum(fileFullPath) != sha256)
+                {
+                    MessageBoxX.Show("The downloaded file has the wrong hash");
+                    return;
+                }
+
+                RunUpdater();
             }
             catch (Exception exception)
             {
@@ -82,7 +98,7 @@ namespace Netch.Forms
                 {
                     FileName = Path.Combine(Global.NetchDir, "NetchUpdater.exe"),
                     Arguments =
-                        $"{Global.Settings.UDPSocketPort} {fileFullPath} {Global.NetchDir}"
+                        $"{Global.Settings.UDPSocketPort} \"{fileFullPath}\" \"{Global.NetchDir}\""
                 });
             }
         }

@@ -54,13 +54,25 @@
           <WrapperTool>tlbimp</WrapperTool>
           <Isolated>false</Isolated>
         </COMReference>
+        <COMReference Include="NETCONLib.dll">
+            <Guid>{43E734CA-043D-4A70-9A2C-A8F254063D91}</Guid>
+            <VersionMajor>1</VersionMajor>
+            <VersionMinor>0</VersionMinor>
+            <Lcid>0</Lcid>
+            <WrapperTool>tlbimp</WrapperTool>
+            <Isolated>False</Isolated>
+        </COMReference>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="IPNetwork2" Version="2.5.211" />
-        <PackageReference Include="MaxMind.GeoIP2" Version="3.2.0" />
-        <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.58" />
+        <PackageReference Include="ILMerge" Version="3.0.41" />
+        <PackageReference Include="MaxMind.GeoIP2" Version="3.3.0" />
+        <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.62" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+        <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
+        <PackageReference Include="System.Reflection.Metadata" Version="5.0.0" />
+        <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
+        <PackageReference Include="WindowsJobAPI" Version="5.0.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -69,17 +81,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="System.IO.Compression" />
         <Reference Include="System.Management" />
-        <Reference Include="System.Net.Http" />
         <Reference Include="System.ServiceProcess" />
         <Reference Include="System.Web" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Update="Forms\Server\Trojan.cs">
-          <SubType>Form</SubType>
-        </Compile>
         <Compile Update="Properties\Resources.Designer.cs">
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
@@ -107,6 +114,6 @@
     </ItemGroup>
     <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="@ECHO OFF&#xD;&#xA;RD /S /Q $(TargetDir)bin &gt;NUL 2&gt;&amp;1&#xD;&#xA;RD /S /Q $(TargetDir)i18n &gt;NUL 2&gt;&amp;1&#xD;&#xA;RD /S /Q $(TargetDir)mode &gt;NUL 2&gt;&amp;1&#xD;&#xA;&#xD;&#xA;XCOPY /s /Y $(SolutionDir)binaries $(TargetDir)bin\ &gt;NUL&#xD;&#xA;XCOPY /s /Y $(SolutionDir)translations\i18n $(TargetDir)i18n\ &gt;NUL&#xD;&#xA;XCOPY /s /Y $(SolutionDir)modes\mode $(TargetDir)mode\ &gt;NUL&#xD;&#xA;&#xD;&#xA;DEL /f $(TargetDir)*.config &gt;NUL 2&gt;&amp;1&#xD;&#xA;DEL /f $(TargetDir)*.pdb &gt;NUL 2&gt;&amp;1&#xD;&#xA;RD /s /Q $(TargetDir)x86 &gt;NUL 2&gt;&amp;1" />
+      <Exec Command="set Configuration=$(Configuration)&#xD;&#xA;set ILMergeConsolePath=$(ILMergeConsolePath)&#xD;&#xA;set TargetDir=$(TargetDir)&#xD;&#xA;set SolutionDir=$(SolutionDir)&#xD;&#xA;$(ProjectDir)PostBuild.bat" />
     </Target>
 </Project>

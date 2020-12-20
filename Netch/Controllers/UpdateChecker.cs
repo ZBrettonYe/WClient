@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Netch.Models.GitHubRelease;
 using Netch.Utils;
 using Newtonsoft.Json;
-
 
 namespace Netch.Controllers
 {
@@ -15,11 +15,15 @@ namespace Netch.Controllers
 
         public const string Name = @"WClient";
         public const string Copyright = @"Copyright © 2019 - 2020";
-        public const string Version = @"1.5.0";
+
+        public const string AssemblyVersion = @"1.6.7";
+        private const string Suffix = @"";
+
+        public static readonly string Version = $"{AssemblyVersion}{(string.IsNullOrEmpty(Suffix) ? "" : $"-{Suffix}")}";
 
         public string LatestVersionNumber;
         public string LatestVersionUrl;
-        public string LatestVersionDownloadUrl;
+        public Release LatestRelease;
 
         public event EventHandler NewVersionFound;
         public event EventHandler NewVersionFoundFailed;
@@ -35,14 +39,13 @@ namespace Netch.Controllers
                 var json = await WebUtil.DownloadStringAsync(WebUtil.CreateRequest(url));
 
                 var releases = JsonConvert.DeserializeObject<List<Release>>(json);
-                var latestRelease = VersionUtil.GetLatestRelease(releases, isPreRelease);
-                LatestVersionNumber = latestRelease.tag_name;
-                LatestVersionUrl = latestRelease.html_url;
-                LatestVersionDownloadUrl = latestRelease.assets[0].browser_download_url;
-                Logging.Info($"Github 最新发布版本: {latestRelease.tag_name}");
-                if (VersionUtil.CompareVersion(latestRelease.tag_name, Version) > 0)
+                LatestRelease = VersionUtil.GetLatestRelease(releases, isPreRelease);
+                LatestVersionNumber = LatestRelease.tag_name;
+                LatestVersionUrl = LatestRelease.html_url;
+                Logging.Info($"Github 最新发布版本: {LatestRelease.tag_name}");
+                if (VersionUtil.CompareVersion(LatestRelease.tag_name, Version) > 0)
                 {
-                    Logging.Info($"发现新版本");
+                    Logging.Info("发现新版本");
                     NewVersionFound?.Invoke(this, new EventArgs());
                 }
                 else

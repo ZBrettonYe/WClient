@@ -1,16 +1,13 @@
-﻿using System;
-using Netch.Utils;
+﻿using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Netch.Controllers
 {
-    public class DNSController : Controller
+    public class DNSController : IController
     {
-        public DNSController()
-        {
-            Name = "DNS Service";
-            MainFile = "unbound.exe";
-            // RedirectStd = false;
-        }
+
+        public string Name { get; } = "DNS Service";
 
         /// <summary>
         ///     启动DNS服务
@@ -18,12 +15,31 @@ namespace Netch.Controllers
         /// <returns></returns>
         public bool Start()
         {
-            return StartInstanceAuto("-c unbound-service.conf -v");
+            if (!aiodns_dial(Encoding.UTF8.GetBytes(Path.GetFullPath(Global.Settings.AioDNS.RulePath)),
+                Encoding.UTF8.GetBytes($"{Global.Settings.AioDNS.ChinaDNS}:53"),
+                Encoding.UTF8.GetBytes($"{Global.Settings.AioDNS.OtherDNS}:53"))
+            )
+                return false;
+            return
+                aiodns_init();
         }
 
-        public override void Stop()
+        public void Stop()
         {
-            StopInstance();
+            aiodns_free();
         }
+
+        #region NativeMethods
+
+        [DllImport("aiodns.bin", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool aiodns_dial(byte[] chinacon, byte[] chinadns, byte[] otherdns);
+
+        [DllImport("aiodns.bin", CallingConvention = CallingConvention.Cdecl)]
+        public static extern bool aiodns_init();
+
+        [DllImport("aiodns.bin", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void aiodns_free();
+
+        #endregion
     }
 }

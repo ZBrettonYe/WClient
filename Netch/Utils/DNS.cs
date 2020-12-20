@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
-using System.Management;
 using System.Net;
-using System.Net.NetworkInformation;
+using Microsoft.Win32;
 
 namespace Netch.Utils
 {
@@ -48,51 +48,53 @@ namespace Netch.Utils
                 return null;
             }
         }
-        /// <summary>
-        /// 设置DNS
-        /// </summary>
-        /// <param name="dns"></param>
-        public static void SetDNS(string[] dns)
-        {
-            ManagementClass wmi = new ManagementClass("Win32_NetworkAdapterConfiguration");
-            ManagementObjectCollection moc = wmi.GetInstances();
-            ManagementBaseObject inPar = null;
-            ManagementBaseObject outPar = null;
-            foreach (ManagementObject mo in moc)
-            {
-                //如果没有启用IP设置的网络设备则跳过，如果是虚拟机网卡也跳过
-                if (!(bool)mo["IPEnabled"] ||
-                    mo["Description"].ToString().Contains("Virtual") ||
-                    mo["Description"].ToString().Contains("VMware") ||
-                    mo["Description"].ToString().Contains("TAP"))
-                    continue;
 
-                //设置DNS地址
-                if (dns != null)
+        private static RegistryKey AdapterRegistry(bool write = false)
+        {
+            if (Global.Outbound.Adapter == null)
+                Utils.SearchOutboundAdapter();
+            return Registry.LocalMachine.OpenSubKey(
+                $@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{Global.Outbound.Adapter.Id}", write);
+        }
+
+        /// <summary>
+        /// 出口网卡 DNS
+        /// <para></para>
+        /// 依赖 <see cref="Global.Outbound.Adapter"/>
+        /// </summary>
+        public static string OutboundDNS
+        {
+            get
+            {
+                try
                 {
-                    inPar = mo.GetMethodParameters("SetDNSServerSearchOrder");
-                    inPar["DNSServerSearchOrder"] = dns;
-                    outPar = mo.InvokeMethod("SetDNSServerSearchOrder", inPar, null);
+                    return (string) AdapterRegistry().GetValue("NameServer");
+                }
+                catch
+                {
+                    return string.Empty;
                 }
             }
+            set => AdapterRegistry(true).SetValue("NameServer", value, RegistryValueKind.String);
         }
-        /// <summary>
-        /// 从网卡获取ip设置信息
-        /// </summary>
-        public static string[] getSystemDns()
-        {
-            var systemDns = new[] { "223.5.5.5", "1.1.1.1" };
-            foreach (var network in NetworkInterface.GetAllNetworkInterfaces())
-                if (!network.Description.Contains("Virtual") &&
-                    !network.Description.Contains("VMware") &&
-                    !network.Description.Contains("TAP") &&
-                    network.OperationalStatus == OperationalStatus.Up &&
-                    network.GetIPProperties()?.GatewayAddresses.Count != 0)
-                {
-                    systemDns = network.GetIPProperties().DnsAddresses.Select(dns => dns.ToString()).ToArray();
-                }
 
-            return systemDns;
+        public static IEnumerable<string> Split(string dns)
+        {
+            return dns.Split(',').Where(ip => !string.IsNullOrWhiteSpace(ip)).Select(ip => ip.Trim());
+        }
+
+        public static bool TrySplit(string value, out IEnumerable<string> result, ushort maxCount = 0)
+        {
+            result = Split(value).ToArray();
+
+            return maxCount == 0 || result.Count() <= maxCount
+                &&
+                result.All(ip => IPAddress.TryParse(ip, out _));
+        }
+
+        public static string Join(IEnumerable<string> dns)
+        {
+            return string.Join(",", dns);
         }
     }
 }

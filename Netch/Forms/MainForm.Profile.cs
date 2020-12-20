@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Netch.Models;
@@ -15,12 +15,8 @@ namespace Netch.Forms
 
     partial class MainForm
     {
-        /// init at <see cref="MainForm_Load"/> 
-        private int _sizeHeight;
-
-        private int _profileConfigurationHeight;
-        private int _profileGroupboxHeight;
         private int _configurationGroupBoxHeight;
+        private int _profileConfigurationHeight;
 
         private void InitProfile()
         {
@@ -41,7 +37,6 @@ namespace Netch.Forms
                 ProfileGroupBox.Visible = false;
 
                 ConfigurationGroupBox.Size = new Size(ConfigurationGroupBox.Size.Width, _configurationGroupBoxHeight - _profileConfigurationHeight);
-                Size = new Size(Size.Width, _sizeHeight - (_profileConfigurationHeight + _profileGroupboxHeight));
             }
             else
             {
@@ -75,56 +70,41 @@ namespace Netch.Forms
                     ProfileTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 1));
                 }
 
-                if (Size.Height == _sizeHeight) return;
                 configLayoutPanel.RowStyles[2].SizeType = SizeType.AutoSize;
                 ProfileGroupBox.Visible = true;
                 ConfigurationGroupBox.Size = new Size(ConfigurationGroupBox.Size.Width, _configurationGroupBoxHeight);
-                Size = new Size(Size.Width, _sizeHeight);
             }
         }
 
-        private string LoadProfile(int index)
+        private void LoadProfile(int index)
         {
             var p = Global.Settings.Profiles[index];
+            ProfileNameText.Text = p.ProfileName;
+            ModeComboBox.ResetCompletionList();
 
             if (p.IsDummy)
                 throw new Exception("Profile not found.");
 
-            var result = false;
+            var server = ServerComboBox.Items.Cast<Server>().FirstOrDefault(s => s.Remark.Equals(p.ServerRemark));
+            var mode = ModeComboBox.Items.Cast<Models.Mode>().FirstOrDefault(m => m.Remark.Equals(p.ModeRemark));
 
-            foreach (Models.Server server in ServerComboBox.Items)
+            if (server == null)
             {
-                if (server.Remark.Equals(p.ServerRemark))
-                {
-                    ServerComboBox.SelectedItem = server;
-                    result = true;
-                    break;
-                }
-            }
-
-            if (!result)
                 throw new Exception("Server not found.");
-
-            result = false;
-            foreach (Models.Mode mode in ModeComboBox.Items)
-            {
-                if (mode.Remark.Equals(p.ModeRemark))
-                {
-                    ModeComboBox.SelectedItem = mode;
-                    result = true;
-                    break;
-                }
             }
 
-            if (!result)
+            if (mode == null)
+            {
                 throw new Exception("Mode not found.");
+            }
 
-            return p.ProfileName;
+            ServerComboBox.SelectedItem = server;
+            ModeComboBox.SelectedItem = mode;
         }
 
         private void SaveProfile(int index)
         {
-            var selectedServer = (Models.Server) ServerComboBox.SelectedItem;
+            var selectedServer = (Server) ServerComboBox.SelectedItem;
             var selectedMode = (Models.Mode) ModeComboBox.SelectedItem;
             var name = ProfileNameText.Text;
 
@@ -168,7 +148,8 @@ namespace Netch.Forms
 
             if (Global.Settings.Profiles[index].IsDummy)
             {
-                MessageBoxX.Show(i18N.Translate("No saved profile here. Save a profile first by Ctrl+Click on the button"));
+                MessageBoxX.Show(
+                    i18N.Translate("No saved profile here. Save a profile first by Ctrl+Click on the button"));
                 return;
             }
 
@@ -177,32 +158,29 @@ namespace Netch.Forms
                 if (MessageBoxX.Show(i18N.Translate("Remove this Profile?"), confirm: true) != DialogResult.OK) return;
                 RemoveProfile(index);
                 ProfileButtons[index].Text = i18N.Translate("None");
-                // MessageBoxX.Show(i18N.Translate("Profile Removed!"));
                 return;
             }
 
             try
             {
-                ProfileNameText.Text = LoadProfile(index);
-
-                // start the profile
-                ControlFun();
-                if (State == State.Stopping || State == State.Stopped)
-                {
-                    while (State != State.Stopped)
-                    {
-                        await Task.Delay(250);
-                    }
-
-                    ControlFun();
-                }
+                LoadProfile(index);
             }
-            catch (Exception ee)
+            catch (Exception exception)
             {
-                Logging.Info(ee.ToString());
-                ProfileButtons[index].Text = i18N.Translate("Error");
-                await Task.Delay(1200);
-                ProfileButtons[index].Text = i18N.Translate("None");
+                MessageBoxX.Show(exception.Message, LogLevel.ERROR);
+                return;
+            }
+
+            // start the profile
+            ControlFun();
+            if (State == State.Stopping || State == State.Stopped)
+            {
+                while (State != State.Stopped)
+                {
+                    await Task.Delay(250);
+                }
+
+                ControlFun();
             }
         }
     }
